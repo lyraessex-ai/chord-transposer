@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chord Transposer</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    textarea, input { width: 100%; padding: 10px; margin: 10px 0; }
+    button { padding: 10px 20px; cursor: pointer; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Chord Transposer</h2>
+    <label>Paste Chords:</label>
+    <textarea id="inputChords" rows="4"></textarea>
+
+    <label>Transpose (semitones, + or -):</label>
+    <input type="number" id="shift" value="0">
+
+    <button onclick="transpose()">Transpose</button>
+
+    <label>Result:</label>
+    <textarea id="outputChords" rows="4" readonly></textarea>
+  </div>
+
+  <script>
+    const notesSharp = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    const notesFlat  = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+
+    function transposeChord(chord, shift) {
+      const regex = /^([A-G])(b|#)?(.*)$/;
+      const match = chord.match(regex);
+      if (!match) return chord;
+
+      let [, root, accidental, rest] = match;
+      let note = root + (accidental || "");
+
+      let index = notesSharp.indexOf(note);
+      if (index === -1) index = notesFlat.indexOf(note);
+      if (index === -1) return chord;
+
+      let newIndex = (index + shift + 12) % 12;
+      let newNote = notesSharp[newIndex];
+
+      return newNote + rest;
+    }
+
+    function transpose() {
+      const input = document.getElementById("inputChords").value;
+      const shift = parseInt(document.getElementById("shift").value);
+
+      const result = input.split(/\s+/).map(token => {
+        if (token.includes("/")) {
+          let [base, bass] = token.split("/");
+          return transposeChord(base, shift) + "/" + transposeChord(bass, shift);
+        }
+        return transposeChord(token, shift);
+      }).join(" ");
+
+      document.getElementById("outputChords").value = result;
+    }
+  </script>
+</body>
+</html>
